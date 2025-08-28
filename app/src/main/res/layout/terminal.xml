@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#000000">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <TextView
+            android:id="@+id/saida"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="vertical"
+            android:textIsSelectable="true"
+            android:focusable="true"
+            android:cursorVisible="false"
+            android:longClickable="true"
+            android:singleLine="false"
+            android:gravity="top"
+            android:padding="8dp"
+            android:background="#000000"
+            android:textColor="#00FF00"
+            android:textSize="16sp"
+            android:typeface="monospace"/>
+
+    </ScrollView>
+
+    <EditText
+        android:id="@+id/entrada"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:scrollbars="vertical"
+        android:background="#000000"
+        android:textColor="#00FF00"
+        android:textSize="16sp"
+        android:typeface="monospace"
+        android:padding="8dp"
+        android:hint="Digite o comando"
+        android:textColorHint="#FDFDFD"
+        android:gravity="top"/>
+
+</LinearLayout>
+

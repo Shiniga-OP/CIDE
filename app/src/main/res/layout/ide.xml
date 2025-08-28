@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:orientation="vertical">
+
+	<LinearLayout
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:padding="8dp"
+		android:background="#000000"
+		android:orientation="vertical">
+
+		<LinearLayout
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:padding="8dp"
+			android:orientation="horizontal">
+
+			<Button
+				android:id="@+id/executar"
+				android:layout_width="65dp"
+				android:layout_height="40dp"
+				android:padding="8dp"
+				android:text="executar"
+				android:textSize="10sp"
+				android:onClick="praTerminal"
+				android:textColor="#000000"/>
+
+			<EditText
+				android:id="@+id/nomeArquivo"
+				android:layout_width="80dp"
+				android:layout_height="wrap_content"
+				android:padding="8dp"
+				android:textSize="10sp"
+				android:textColor="#FCFCFC"
+				android:hint="nome do arquivo"
+				android:textColorHint="#607D8B"
+				android:background="#FF000000"/>
+
+			<ImageView
+				android:layout_width="40dp"
+				android:layout_height="40dp"
+				android:scaleType="fitCenter"
+				android:adjustViewBounds="true"
+				android:id="@+id/salvar"
+				android:src="@drawable/salvar"/>
+
+			<CheckBox
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:onClick="autocomplete"/>
+
+			<Button
+				android:layout_width="40dp"
+				style="?android:attr/buttonStyleSmall"
+				android:layout_height="40dp"
+				android:text="&lt;="
+				android:onClick="voltar"/>
+
+		</LinearLayout>
+
+		<LinearLayout
+			android:layout_width="match_parent"
+			android:layout_height="400dp"
+			android:padding="8dp"
+			android:orientation="horizontal">
+
+			<EditText
+				android:id="@+id/editor"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:padding="8dp"
+				android:text="// escreva seu codigo aqui:"
+				android:textSize="14sp"
+				android:textColor="#FFFFFF"
+				android:hint="comando"
+				android:textColorHint="#ECEFF1"
+				android:gravity="top"
+				android:background="#FF000000"/>
+
+		</LinearLayout>
+
+		<LinearLayout
+			android:layout_width="match_parent"
+			android:layout_height="400dp"
+			android:padding="8dp"
+			android:orientation="horizontal">
+
+			<ListView
+				android:id="@+id/pastas"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:padding="8dp"
+				android:background="#212121"
+				android:choiceMode="none"/>
+
+		</LinearLayout>
+
+	</LinearLayout>
+
+</LinearLayout>
+
