@@ -11,35 +11,37 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import android.text.Spanned;
 import android.graphics.Typeface;
+import android.view.*;
+import android.util.*;
 
 public class Sintaxe {
     public final HashSet<String> PALAVRAS_NAO_FUNCOES = new HashSet<>();
     public static final long DELAY_MILLIS = 300;
 
-    public void aplicar(final EditText editor) {
-        editor.addTextChangedListener(new olhadorSintaxe(editor));
-        destacarSintaxe(editor);
+	public void aplicar(final EditText editor) {
+		editor.addTextChangedListener(new olhadorSintaxe(editor));
+		editor.setOnTouchListener(new Zoom());
+		destacarSintaxe(editor);
 		editor.setTypeface(Typeface.MONOSPACE);
 		editor.setLineSpacing(7, 1.1f);
-    }
-
+	}
+	
     public void destacarSintaxe(EditText editor) {}
 
-    public void destacarComentarios(Spannable span, String txt) {
+    public static void destacarComentarios(Spannable span, String txt, String cor) {
         Pattern p1 = Pattern.compile("//.*?$", Pattern.MULTILINE);
         Matcher m1 = p1.matcher(txt);
         while(m1.find()) {
             span.setSpan(
-                new ForegroundColorSpan(Color.parseColor("#9E9E9E")),
+                new ForegroundColorSpan(Color.parseColor(cor)),
                 m1.start(), m1.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
             );
         }
-
         Pattern p2 = Pattern.compile("/\\*(.|\\n)*?\\*/");
         Matcher m2 = p2.matcher(txt);
         while(m2.find()) {
             span.setSpan(
-                new ForegroundColorSpan(Color.parseColor("#9E9E9E")),
+                new ForegroundColorSpan(Color.parseColor(cor)),
                 m2.start(),
                 m2.end(),
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
@@ -47,7 +49,7 @@ public class Sintaxe {
         }
     }
 
-	public void destacarNumeros(Spannable span, String txt, String cor) {
+	public static void destacarNumeros(Spannable span, String txt, String cor) {
 		Pattern p = Pattern.compile("(?<!\\w)(-?\\d+(\\.\\d+)?)(?!\\w)");
 		Matcher m = p.matcher(txt);
 		while(m.find()) {
@@ -59,14 +61,14 @@ public class Sintaxe {
 		}
 	}
 
-    public void limparSpans(Editable e) {
+    public static void limparSpans(Editable e) {
         ForegroundColorSpan[] spans = e.getSpans(0, e.length(), ForegroundColorSpan.class);
         for(ForegroundColorSpan span : spans) {
             e.removeSpan(span);
         }
     }
 
-    public void destacarPalavra(Spannable s, String texto, String palavra, String cor) {
+    public static void destacarPalavra(Spannable s, String texto, String palavra, String cor) {
         Pattern p = Pattern.compile("\\b" + palavra + "\\b");
         Matcher m = p.matcher(texto);
         while(m.find()) {
@@ -78,8 +80,34 @@ public class Sintaxe {
             );
         }
     }
+	
+	public static void destacarSimbolo(Spannable s, String texto, String simbolo, String cor) {
+		Pattern p = Pattern.compile(Pattern.quote(simbolo));
+		Matcher m = p.matcher(texto);
+		while(m.find()) {
+			s.setSpan(
+				new ForegroundColorSpan(Color.parseColor(cor)),
+				m.start(),
+				m.end(),
+				Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+			);
+		}
+	}
+	
+	public static void destacarIncludes(Spannable s, String texto, String cor) {
+        Pattern p = Pattern.compile("<(?:\\\\<|[^>])*?>");
+        Matcher m = p.matcher(texto);
+        while(m.find()) {
+            s.setSpan(
+                new ForegroundColorSpan(Color.parseColor(cor)),
+                m.start(),
+                m.end(),
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            );
+        }
+    }
 
-    public void destacarAspas(Spannable s, String texto, String cor) {
+    public static void destacarAspas(Spannable s, String texto, String cor) {
         Pattern p = Pattern.compile("\"(?:\\\\\"|[^\"])*?\"");
         Matcher m = p.matcher(texto);
         while(m.find()) {
@@ -92,7 +120,7 @@ public class Sintaxe {
         }
     }
 
-	public void destacarAspasSim(Spannable s, String texto, String cor) {
+	public static void destacarAspasSim(Spannable s, String texto, String cor) {
         Pattern p = Pattern.compile("\'(?:\\\\\'|[^\'])*?\'");
         Matcher m = p.matcher(texto);
         while(m.find()) {
@@ -105,7 +133,7 @@ public class Sintaxe {
         }
     }
 	
-	public void destacarAspasEs(Spannable s, String texto, String cor) {
+	public static void destacarAspasEs(Spannable s, String texto, String cor) {
 		Pattern p = Pattern.compile("`(?:\\\\`|[^`])*?`");
 		Matcher m = p.matcher(texto);
 		while(m.find()) {
@@ -134,7 +162,7 @@ public class Sintaxe {
         }
     }
 
-    public void destacarProximaPalavra(Spannable s, String texto, String palavraChave, String cor) {
+    public static void destacarProximaPalavra(Spannable s, String texto, String palavraChave, String cor) {
         Pattern p = Pattern.compile("\\b" + palavraChave + "\\s+(\\w+)\\b");
         Matcher m = p.matcher(texto);
         while(m.find()) {
@@ -146,7 +174,38 @@ public class Sintaxe {
             );
         }
     }
+	
+	public class Zoom implements View.OnTouchListener {
+		public float disInicial = 0f;
+		public float tamTxtInicial = 0f;
 
+		@Override
+		public boolean onTouch(View v, MotionEvent e) {
+			EditText editor = (EditText) v;
+
+			if(e.getPointerCount() == 2) {
+				switch (e.getActionMasked()) {
+					case MotionEvent.ACTION_POINTER_DOWN:
+						disInicial = calcularDistancia(e);
+						tamTxtInicial = editor.getTextSize();
+						break;
+					case MotionEvent.ACTION_MOVE:
+						float escala = calcularDistancia(e) / disInicial;
+						float novoTam = tamTxtInicial * escala;
+						if(novoTam > 10 && novoTam < 100) editor.setTextSize(TypedValue.COMPLEX_UNIT_PX, novoTam);
+						break;
+				}
+				return true;
+			}
+			return false;
+		}
+
+		public float calcularDistancia(MotionEvent e) {
+			float x = e.getX(0) - e.getX(1);
+			float y = e.getY(0) - e.getY(1);
+			return (float) Math.sqrt(x * x + y * y);
+		}
+	}
     public class olhadorSintaxe implements TextWatcher {
 		public final EditText editor;
 		public final Runnable tarefaDestaque = new Runnable() {
@@ -229,9 +288,12 @@ public class Sintaxe {
 			// bege
 			destacarFuncoes(e, texto, "#F4A460");
 			// cinza
-			destacarPalavra(e, texto, "#incluir", "#9E9E9E");
-			destacarProximaPalavra(e, texto, "#incluir", "#9E9E9E");
-			destacarComentarios(e, texto);
+			String[] simbs = {
+				"#", "+", "-", "%", "/", "&", "?", "!", ";", ":",
+				"(", ")", "{", "}", "[", "]", ".", "*"
+			};
+            destacarComentarios(e, texto, "#9E9E9E");
+			for(int i = 0; i < simbs.length; i++) destacarSimbolo(e, texto, simbs[i], "#9E9E9E");
 			// verde
 			destacarProximaPalavra(e, texto, "classe", "#66BB6A");
 			destacarProximaPalavra(e, texto, "novo", "#66BB6A");
@@ -296,7 +358,12 @@ public class Sintaxe {
 			destacarPalavra(e, texto, "byte", "#64B5F6");
 			destacarPalavra(e, texto, "char", "#64B5F6");
 			// cinza
-			destacarComentarios(e, texto);
+			String[] simbs = {
+				"#", "+", "-", "%", "/", "&", "?", "!", ";", ":",
+				"(", ")", "{", "}", "[", "]", ".", "*"
+			};
+            destacarComentarios(e, texto, "#9E9E9E");
+			for(int i = 0; i < simbs.length; i++) destacarSimbolo(e, texto, simbs[i], "#9E9E9E");
 			// verde
 			destacarProximaPalavra(e, texto, "class", "#66BB6A"); 
 			destacarProximaPalavra(e, texto, "new", "#66BB6A");
@@ -357,7 +424,12 @@ public class Sintaxe {
 			// bege
 			destacarFuncoes(e, texto, "#F4A460");
 			// cinza
-			destacarComentarios(e, texto);
+			String[] simbs = {
+				"#", "+", "-", "%", "/", "&", "?", "!", ";", ":",
+				"(", ")", "{", "}", "[", "]", ".", "*"
+			};
+            destacarComentarios(e, texto, "#9E9E9E");
+			for(int i = 0; i < simbs.length; i++) destacarSimbolo(e, texto, simbs[i], "#9E9E9E");
 			// verde
 			destacarProximaPalavra(e, texto, "class", "#66BB6A");
 			destacarProximaPalavra(e, texto, "new", "#66BB6A");
@@ -420,7 +492,12 @@ public class Sintaxe {
             // rosa
             destacarNumeros(e, texto, "#FF1493");
             // cinza
-            destacarComentarios(e, texto);
+			String[] simbs = {
+				"#", "+", "-", "%", "/", "&", "?", "!", ";", ":",
+				"(", ")", "{", "}", "[", "]", ".", "*"
+			};
+            destacarComentarios(e, texto, "#9E9E9E");
+			for(int i = 0; i < simbs.length; i++) destacarSimbolo(e, texto, simbs[i], "#9E9E9E");
             // verde claro
             destacarPalavra(e, texto, "svc", "#98FB98");
             // verde
@@ -431,6 +508,12 @@ public class Sintaxe {
     }
 	
 	public static class C extends Sintaxe {
+		public C() {
+			PALAVRAS_NAO_FUNCOES.add("while");
+			PALAVRAS_NAO_FUNCOES.add("if");
+			PALAVRAS_NAO_FUNCOES.add("for");
+			PALAVRAS_NAO_FUNCOES.add("switch");
+		}
         @Override
         public void destacarSintaxe(EditText editor) {
             Editable e = editor.getText();
@@ -443,21 +526,32 @@ public class Sintaxe {
             String texto = e.toString();
             // azul escuro
             destacarPalavra(e, texto, "include", "#3F51B5");
-			destacarPalavra(e, texto, "struct", "#3F51B5");
-			// bege
-			destacarFuncoes(e, texto, "#F4A460");
-			// azul claro
-            String[] tipos = {
+			destacarPalavra(e, texto, "struct", "#3F51B5");	
+			// azul 
+			String[] tipos = {
                 "int", "float", "char", "byte", "void", 
-                "long", "double", "short", "boolean"
+                "long", "double", "bool", "const", "size_t"
             };
             for(String tipo : tipos) destacarPalavra(e, texto, tipo, "#64B5F6");
-            // rosa forte
-            destacarPalavra(e, texto, "return", "#FF69B4");
+			// bege
+			destacarFuncoes(e, texto, "#F4A460");
+            // rosa claro
+			destacarPalavra(e, texto, "if", "#FF69B4");
+			destacarPalavra(e, texto, "else", "#FF69B4");
+			destacarPalavra(e, texto, "for", "#FF69B4");
+			destacarPalavra(e, texto, "while", "#FF69B4");
+			destacarPalavra(e, texto, "switch", "#FF69B4");
+			destacarPalavra(e, texto, "return", "#FF69B4");
             // rosa
             destacarNumeros(e, texto, "#FF1493");
             // cinza
-            destacarComentarios(e, texto);
+			String[] simbs = {
+				"#", "+", "-", "%", "/", "&", "?", "!", ";", ":",
+				"(", ")", "{", "}", "[", "]", ".", "*"
+			};
+            destacarComentarios(e, texto, "#9E9E9E");
+			destacarIncludes(e, texto, "#9E9E9E");
+			for(int i = 0; i < simbs.length; i++) destacarSimbolo(e, texto, simbs[i], "#9E9E9E");
             // verde
             destacarAspas(e, texto, "#66BB6A");
             destacarAspasSim(e, texto, "#66BB6A");

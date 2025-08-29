@@ -297,7 +297,7 @@ public class MainActivity extends Activity {
     
     public void praTerminal(View v) {
         TerminalActivity.comandoPadrao = "";
-        if(arquivoAtual != null && !arquivoAtual.equals("")) {
+        if(arquivoAtual != null && !arquivoAtual.equals("") && !nomeArquivo.getText().toString().equals("")) {
             try {
                 String caminho;
                 if(nomeArquivo.getText().toString().startsWith("/"))  caminho = nomeArquivo.getText().toString();
@@ -311,15 +311,14 @@ public class MainActivity extends Activity {
             } catch(Exception e) {
                 Toast.makeText(getApplicationContext(), "erro: "+e, Toast.LENGTH_SHORT).show();
             }
-            String nomeArquivo = new File(arquivoAtual).getName();
-            if(!(new File(getFilesDir().getAbsolutePath()+"/pacotes/bin").isDirectory())) {
-                System.out.println("instalando pacote clang...");
-                TerminalActivity.executarEs("instalar clang", this);
-                System.out.println("execute asm apos a instalação");
-            }
-            TerminalActivity.comandoPadrao += 
-                "clang " + nomeArquivo + " -o " + nomeArquivo.replace(".c", "") + "&& " +
-                "./" + nomeArquivo.replace(".c", "");
+            File nomeArquivo = new File(arquivoAtual);
+            if(!(new File(getFilesDir().getAbsolutePath()+"/pacotes/bin").isDirectory()) && !nomeArquivo.isDirectory()) {
+                TerminalActivity.comandoPadrao = "instalar clang";
+            } else {
+				TerminalActivity.comandoPadrao += 
+					"clang " + nomeArquivo + " -o " + nomeArquivo.getName().replace(".c", "") + "&& " +
+					"./" + nomeArquivo.getName().replace(".c", "");
+			}
         } else TerminalActivity.comandoPadrao = null;
         Intent t = new Intent(this, TerminalActivity.class);
         startActivity(t);
