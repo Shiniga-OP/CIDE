@@ -95,20 +95,7 @@ public class Sintaxe {
 	}
 	
 	public static void destacarIncludes(Spannable s, String texto, String cor) {
-        Pattern p = Pattern.compile("<(?:\\\\<|[^>])*?>");
-        Matcher m = p.matcher(texto);
-        while(m.find()) {
-            s.setSpan(
-                new ForegroundColorSpan(Color.parseColor(cor)),
-                m.start(),
-                m.end(),
-                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-            );
-        }
-    }
-
-    public static void destacarAspas(Spannable s, String texto, String cor) {
-		Pattern p = Pattern.compile("\"(?:\\\\.|[^\"\\\\])*\"");
+		Pattern p = Pattern.compile("<\\s*[^\\s<>]+\\.h\\s*>");
 		Matcher m = p.matcher(texto);
 		while(m.find()) {
 			s.setSpan(
@@ -120,30 +107,82 @@ public class Sintaxe {
 		}
 	}
 
-	public static void destacarAspasSim(Spannable s, String texto, String cor) {
-		Pattern p = Pattern.compile("'(?:\\\\.|[^'\\\\])*'");
-		Matcher m = p.matcher(texto);
-		while(m.find()) {
-			s.setSpan(
-				new ForegroundColorSpan(Color.parseColor(cor)),
-				m.start(),
-				m.end(),
-				Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-			);
+	public static void destacarAspas(Spannable s, String texto, String cor) {
+		int tam = texto.length();
+		int ultimoIndice = 0;
+		// aspas duplas
+		while(ultimoIndice < tam) {
+			int inicio = texto.indexOf('"', ultimoIndice);
+			if(inicio == -1) break;
+			if(eEscapado(texto, inicio)) {
+				ultimoIndice = inicio + 1;
+				continue;
+			}
+			int fim = inicio + 1;
+			boolean fimAchado = false;
+
+			while(fim < tam && !fimAchado) {
+				fim = texto.indexOf('"', fim);
+				if(fim == -1) break;
+
+				if(!eEscapado(texto, fim)) fimAchado = true;
+				else fim++;
+			}
+			if(fimAchado) {
+				s.setSpan(
+					new ForegroundColorSpan(Color.parseColor(cor)),
+					inicio,
+					fim + 1,
+					Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+				);
+				ultimoIndice = fim + 1;
+			} else break;
+		}
+		ultimoIndice = 0;
+		// aspas simples:
+		while(ultimoIndice < tam) {
+			int inicio = texto.indexOf('\'', ultimoIndice);
+			if(inicio == -1) break;
+
+			if(eEscapado(texto, inicio)) {
+				ultimoIndice = inicio + 1;
+				continue;
+			}
+			int fim = inicio + 1;
+			boolean fimAchado = false;
+
+			while(fim < tam && !fimAchado) {
+				fim = texto.indexOf('\'', fim);
+				if(fim == -1) break;
+
+				if(!eEscapado(texto, fim)) fimAchado = true;
+				else fim++;
+			}
+
+			if(fimAchado) {
+				s.setSpan(
+					new ForegroundColorSpan(Color.parseColor(cor)),
+					inicio,
+					fim + 1,
+					Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+				ultimoIndice = fim + 1;
+			} else {
+				break;
+			}
 		}
 	}
-	
-	public static void destacarAspasEs(Spannable s, String texto, String cor) {
-		Pattern p = Pattern.compile("`(?:\\\\`|[^`])*?`");
-		Matcher m = p.matcher(texto);
-		while(m.find()) {
-			s.setSpan(
-				new ForegroundColorSpan(Color.parseColor(cor)),
-				m.start(),
-				m.end(),
-				Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-			);
+
+	public static boolean eEscapado(String txt, int pos) {
+		if(pos <= 0) return false;
+
+		int conta = 0;
+		int i = pos - 1;
+
+		while(i >= 0 && txt.charAt(i) == '\\') {
+			conta++;
+			i--;
 		}
+		return (conta % 2) == 1;
 	}
 
     public void destacarFuncoes(Spannable s, String texto, String cor) {
@@ -290,7 +329,7 @@ public class Sintaxe {
 			// cinza
 			String[] simbs = {
 				"#", "+", "-", "%", "/", "&", "?", "!", ";", ":",
-				"(", ")", "{", "}", "[", "]", ".", "*"
+				"(", ")", "{", "}", "[", "]", ".", "*", ">", "<"
 			};
             destacarComentarios(e, texto, "#9E9E9E");
 			for(int i = 0; i < simbs.length; i++) destacarSimbolo(e, texto, simbs[i], "#9E9E9E");
@@ -298,7 +337,6 @@ public class Sintaxe {
 			destacarProximaPalavra(e, texto, "classe", "#66BB6A");
 			destacarProximaPalavra(e, texto, "novo", "#66BB6A");
 			destacarAspas(e, texto, "#66BB6A");
-			destacarAspasSim(e, texto, "#66BB6A");
 
 			if(selecaoComeco >= 0 && selecaoFinal >= 0 && selecaoComeco <= e.length() && selecaoFinal <= e.length()) {
 				editor.setSelection(selecaoComeco, selecaoFinal);
@@ -360,7 +398,7 @@ public class Sintaxe {
 			// cinza
 			String[] simbs = {
 				"#", "+", "-", "%", "/", "&", "?", "!", ";", ":",
-				"(", ")", "{", "}", "[", "]", ".", "*"
+				"(", ")", "{", "}", "[", "]", ".", "*", ">", "<"
 			};
             destacarComentarios(e, texto, "#9E9E9E");
 			for(int i = 0; i < simbs.length; i++) destacarSimbolo(e, texto, simbs[i], "#9E9E9E");
@@ -368,7 +406,6 @@ public class Sintaxe {
 			destacarProximaPalavra(e, texto, "class", "#66BB6A"); 
 			destacarProximaPalavra(e, texto, "new", "#66BB6A");
 			destacarAspas(e, texto, "#66BB6A");
-			destacarAspasSim(e, texto, "#66BB6A");
 
 			if(selecaoComeco >= 0 && selecaoFinal >= 0 && selecaoComeco <= e.length() && selecaoFinal <= e.length()) {
 				editor.setSelection(selecaoComeco, selecaoFinal);
@@ -426,7 +463,7 @@ public class Sintaxe {
 			// cinza
 			String[] simbs = {
 				"#", "+", "-", "%", "/", "&", "?", "!", ";", ":",
-				"(", ")", "{", "}", "[", "]", ".", "*"
+				"(", ")", "{", "}", "[", "]", ".", "*", ">", "<"
 			};
             destacarComentarios(e, texto, "#9E9E9E");
 			for(int i = 0; i < simbs.length; i++) destacarSimbolo(e, texto, simbs[i], "#9E9E9E");
@@ -434,8 +471,6 @@ public class Sintaxe {
 			destacarProximaPalavra(e, texto, "class", "#66BB6A");
 			destacarProximaPalavra(e, texto, "new", "#66BB6A");
 			destacarAspas(e, texto, "#66BB6A");
-			destacarAspasSim(e, texto, "#66BB6A");
-			destacarAspasEs(e, texto, "#66BB6A");
 
 			if(selecaoComeco >= 0 && selecaoFinal >= 0 && selecaoComeco <= e.length() && selecaoFinal <= e.length()) {
 				editor.setSelection(selecaoComeco, selecaoFinal);
@@ -494,7 +529,7 @@ public class Sintaxe {
             // cinza
 			String[] simbs = {
 				"#", "+", "-", "%", "/", "&", "?", "!", ";", ":",
-				"(", ")", "{", "}", "[", "]", ".", "*"
+				"(", ")", "{", "}", "[", "]", ".", "*", ">", "<"
 			};
             destacarComentarios(e, texto, "#9E9E9E");
 			for(int i = 0; i < simbs.length; i++) destacarSimbolo(e, texto, simbs[i], "#9E9E9E");
@@ -502,7 +537,6 @@ public class Sintaxe {
             destacarPalavra(e, texto, "svc", "#98FB98");
             // verde
             destacarAspas(e, texto, "#66BB6A");
-            destacarAspasSim(e, texto, "#66BB6A");
             if(selecaoComeco >= 0 && selecaoFinal >= 0) editor.setSelection(selecaoComeco, selecaoFinal);
         }
     }
@@ -525,11 +559,18 @@ public class Sintaxe {
             limparSpans(e);
             String texto = e.toString();
             // azul escuro
-            destacarPalavra(e, texto, "include", "#3F51B5");
+			destacarSimbolo(e, texto, "#include", "#3F51B5");
+			destacarSimbolo(e, texto, "#define", "#3F51B5");
+			destacarSimbolo(e, texto, "#if", "#3F51B5");
+			destacarSimbolo(e, texto, "#ifdef", "#3F51B5");
+			destacarSimbolo(e, texto, "#end", "#3F51B5");
 			destacarPalavra(e, texto, "struct", "#3F51B5");	
+			destacarPalavra(e, texto, "static", "#3F51B5");	
+			destacarPalavra(e, texto, "typedef", "#3F51B5");	
+			destacarPalavra(e, texto, "enum", "#3F51B5");	
 			// azul 
 			String[] tipos = {
-                "int", "float", "char", "byte", "void", 
+                "int", "float", "char", "byte", "void", "FILE",
                 "long", "double", "bool", "const", "size_t"
             };
             for(String tipo : tipos) destacarPalavra(e, texto, tipo, "#64B5F6");
@@ -541,20 +582,21 @@ public class Sintaxe {
 			destacarPalavra(e, texto, "for", "#FF69B4");
 			destacarPalavra(e, texto, "while", "#FF69B4");
 			destacarPalavra(e, texto, "switch", "#FF69B4");
+			destacarPalavra(e, texto, "case", "#FF69B4");
+			destacarPalavra(e, texto, "break", "#FF69B4");
 			destacarPalavra(e, texto, "return", "#FF69B4");
             // rosa
             destacarNumeros(e, texto, "#FF1493");
             // cinza
 			String[] simbs = {
 				"#", "+", "-", "%", "/", "&", "?", "!", ";", ":",
-				"(", ")", "{", "}", "[", "]", ".", "*"
+				"(", ")", "{", "}", "[", "]", ".", "*", ">", "<"
 			};
             destacarComentarios(e, texto, "#9E9E9E");
 			destacarIncludes(e, texto, "#9E9E9E");
 			for(int i = 0; i < simbs.length; i++) destacarSimbolo(e, texto, simbs[i], "#9E9E9E");
             // verde
             destacarAspas(e, texto, "#66BB6A");
-            destacarAspasSim(e, texto, "#66BB6A");
             if(selecaoComeco >= 0 && selecaoFinal >= 0) editor.setSelection(selecaoComeco, selecaoFinal);
         }
     }
