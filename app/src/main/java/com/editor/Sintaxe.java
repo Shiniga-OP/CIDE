@@ -108,30 +108,30 @@ public class Sintaxe {
     }
 
     public static void destacarAspas(Spannable s, String texto, String cor) {
-        Pattern p = Pattern.compile("\"(?:\\\\\"|[^\"])*?\"");
-        Matcher m = p.matcher(texto);
-        while(m.find()) {
-            s.setSpan(
-                new ForegroundColorSpan(Color.parseColor(cor)),
-                m.start(),
-                m.end(),
-                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-            );
-        }
-    }
+		Pattern p = Pattern.compile("\"(?:\\\\.|[^\"\\\\])*\"");
+		Matcher m = p.matcher(texto);
+		while(m.find()) {
+			s.setSpan(
+				new ForegroundColorSpan(Color.parseColor(cor)),
+				m.start(),
+				m.end(),
+				Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+			);
+		}
+	}
 
 	public static void destacarAspasSim(Spannable s, String texto, String cor) {
-        Pattern p = Pattern.compile("\'(?:\\\\\'|[^\'])*?\'");
-        Matcher m = p.matcher(texto);
-        while(m.find()) {
-            s.setSpan(
-                new ForegroundColorSpan(Color.parseColor(cor)),
-                m.start(),
-                m.end(),
-                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-            );
-        }
-    }
+		Pattern p = Pattern.compile("'(?:\\\\.|[^'\\\\])*'");
+		Matcher m = p.matcher(texto);
+		while(m.find()) {
+			s.setSpan(
+				new ForegroundColorSpan(Color.parseColor(cor)),
+				m.start(),
+				m.end(),
+				Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+			);
+		}
+	}
 	
 	public static void destacarAspasEs(Spannable s, String texto, String cor) {
 		Pattern p = Pattern.compile("`(?:\\\\`|[^`])*?`");
